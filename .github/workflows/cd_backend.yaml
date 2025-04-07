@@ -21,7 +21,7 @@ jobs:
                 context: .
                 file: ./docker/Dockerfile.backend
                 push: true
-                tags: artemislabs/mono-backend:${{github.sha}}
+                tags: devansh90/monorepo:${{github.sha}}
 
 
             
