@@ -1,0 +1,32 @@
+name: Deploy Backend
+on:
+  push:
+    branches: [main]
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout the code
+              uses: actions/checkout@v2
+
+            - name: Docker login
+              uses: docker/login-action@v2
+              with: 
+                username: ${{secrets.DOCKERHUB_USERNAME}}
+                password: ${{secrets.DOCKERHUB_TOKEN}}
+            
+            - name: Build and push
+              uses: docker/build-push-action@v4
+              with: 
+                context: .
+                file: ./docker/Dockerfile.backend
+                build-args: |
+                  - DATABASE_URL=${{secrets.DATABASE_URL}}
+                push: true
+                tags: devansh90/monorepo:${{github.sha}}
+            
+            - name: Deply to the VM
+              run: |
+                echo "${{secrets.SSH_PRIVATE_KEY}}" &> ~/ssh_key
+                chmod 700 /home/runner/ssh_key
+                ssh -o StrickHostKeyChecking=no -i ~/ssh_key ubuntu@43.204.97.253 -t "sudo docker stop backend && sudo docker run --name backend -d -p 8080:8080 devansh90/monorepo:${{github.sha}}"
